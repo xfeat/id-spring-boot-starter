@@ -25,13 +25,15 @@ import java.util.UUID;
 @ConditionalOnProperty(name = "id.key")
 public class IdWorkAutoConfiguration {
 
-    public IdWorkAutoConfiguration(StringRedisTemplate redisTemplate, Environment environment) throws IOException {
+    private String idKey;
 
+    public IdWorkAutoConfiguration(StringRedisTemplate redisTemplate, Environment environment) throws IOException {
+        idKey = environment.getProperty("id.key");
 
         Long workerId = getLocalWorkId();
         try {
             while (workerId == null) {
-                Long newWorkId = redisTemplate.opsForValue().increment(environment.getProperty("id.key"), 1);
+                Long newWorkId = redisTemplate.opsForValue().increment(idKey, 1);
                 saveLocalWorkId(String.valueOf(newWorkId));
                 workerId = getLocalWorkId();
             }
@@ -54,7 +56,7 @@ public class IdWorkAutoConfiguration {
     }
 
     private File getWorkIdHome() {
-        return new File(FileUtils.getUserDirectoryPath() + "/.workId");
+        return new File(FileUtils.getUserDirectoryPath() + "/.workId/" + idKey);
     }
 
 
